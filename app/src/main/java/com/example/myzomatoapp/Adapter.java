@@ -40,7 +40,7 @@ public class Adapter extends RecyclerView.Adapter<Adapter.viewHolder> {
         return restaurantsList.size();
     }
 
-    public class viewHolder extends RecyclerView.ViewHolder {
+    public static class viewHolder extends RecyclerView.ViewHolder {
 
         TextView name,rating,locality;
         public viewHolder(@NonNull View itemView) {

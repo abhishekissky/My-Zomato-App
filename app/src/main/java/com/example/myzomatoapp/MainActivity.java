@@ -5,6 +5,7 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -36,6 +37,7 @@ import com.google.android.gms.tasks.OnCanceledListener;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -52,6 +54,9 @@ public class MainActivity extends AppCompatActivity   {
     FusedLocationProviderClient fusedLocationProviderClient;
     RecyclerView recyclerView;
     SearchView searchView;
+    Retrofit retrofit;
+    ZomatoApiInterface zomatoApiInterface;
+
 
 
 
@@ -60,10 +65,11 @@ public class MainActivity extends AppCompatActivity   {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         recyclerView = findViewById(R.id.recycle_view);
+
         searchView = (SearchView) findViewById(R.id.search_bar);
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
         checkPermissions();
-        getData();
+
 
     }
 
@@ -78,13 +84,12 @@ public class MainActivity extends AppCompatActivity   {
     //Retrofit
     private void getData() {
 
-        Retrofit retrofit = new Retrofit.Builder()
+         retrofit = new Retrofit.Builder()
                 .baseUrl("https://developers.zomato.com/")
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
-//        String lati = Double.toString(lat);
-//        String longt= Double.toString(lon);
-        ZomatoApiInterface zomatoApiInterface = retrofit.create(ZomatoApiInterface.class);
+
+         zomatoApiInterface = retrofit.create(ZomatoApiInterface.class);
         zomatoApiInterface.getData(lat,lon).enqueue(new Callback<Zomato>() {
 
             @Override
@@ -92,6 +97,8 @@ public class MainActivity extends AppCompatActivity   {
                 Zomato zomato = response.body();
                 Log.v("Tab", String.valueOf(zomato.getResults_found()));
                 Log.v("Lat",lat +"\n"+lon);
+                String tx = lon + "/n" + lon;
+
                 List<Restaurants> list = new ArrayList<>(Arrays.asList(zomato.getRestaurants()));
                 for (Restaurants restaurants:list){
                     Log.v("Tab",restaurants.toString());
@@ -110,30 +117,28 @@ public class MainActivity extends AppCompatActivity   {
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
-                zomatoApiInterface.getSearchData(query).enqueue(new Callback<Zomato>() {
-                    @Override
-                    public void onResponse(Call<Zomato> call, Response<Zomato> response) {
-                        Zomato zomato = response.body();
-                        List<Restaurants> list = new ArrayList<>(Arrays.asList(zomato.getRestaurants()));
-                        for (Restaurants restaurants:list){
-                            Log.v(" ",restaurants.toString());
 
-                        }
-                    }
+                SearchFragment searchFragment = new SearchFragment();
+                Bundle bundle = new Bundle();
+                bundle.putString("query",query);
 
-                    @Override
-                    public void onFailure(Call<Zomato> call, Throwable t) {
+                getSupportFragmentManager().beginTransaction()
+                        .setReorderingAllowed(true)
+                        .replace(R.id.frame_layout,SearchFragment.class,bundle)
+                        .addToBackStack(null)
+                        .commit();
 
-                    }
-                });
                 return false;
             }
+
+
 
             @Override
             public boolean onQueryTextChange(String newText) {
                 return false;
             }
         });
+
     }
 
     private void sendData(List<Restaurants> list) {
@@ -177,6 +182,7 @@ public class MainActivity extends AppCompatActivity   {
                         Log.v("Ram lal", location.getLatitude() +"\n"+ location.getLongitude());
                         lat = String.valueOf(location.getLatitude());
                         lon = String.valueOf(location.getLongitude());
+                        getData();
 
                     }else {
                         LocationRequest request = new LocationRequest()
@@ -194,6 +200,7 @@ public class MainActivity extends AppCompatActivity   {
                                 Log.v("Ram lal", String.valueOf(location1.getLongitude()));
                                 lat = String.valueOf(location1.getLatitude());
                                 lon = String.valueOf(location1.getLongitude());
+                                getData();
                             }
                         };
                         fusedLocationProviderClient.requestLocationUpdates(request,locationCallback, Looper.myLooper());

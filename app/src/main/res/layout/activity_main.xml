@@ -6,11 +6,7 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical"
-        >
+
         <SearchView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -21,7 +17,14 @@
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/recycle_view"
             android:layout_width="match_parent"
+            android:background="#2196F3"
             android:layout_height="match_parent"
+            android:layout_below="@id/search_bar"
             />
-    </LinearLayout>
+
+        <androidx.fragment.app.FragmentContainerView
+            android:id="@+id/frame_layout"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_below="@+id/search_bar" />
 </RelativeLayout>
